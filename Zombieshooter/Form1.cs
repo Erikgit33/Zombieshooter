@@ -7,7 +7,7 @@ namespace Zombieshooter
 
         // vapen med olika egenskaper
         Weapon revolver = new Weapon(50, TimeSpan.FromMilliseconds(200));
-        Weapon shotgun = new Weapon(200, TimeSpan.FromMilliseconds(600));
+        Weapon shotgun = new Weapon(200, TimeSpan.FromMilliseconds(1500));
 
         // ljudeffekt för shotgun
         System.Media.SoundPlayer shotgunSound =
@@ -30,36 +30,80 @@ namespace Zombieshooter
             InitializeComponent();
         }
 
+        int score;
+        int highScore;
+
         /// <summary>
-        /// 1. Avfyra shotgunen om det inte överskrider "firing rate"
+        /// 1. Avfyra shotgunen om den inte överskrider "firing rate"
         /// 2. Den närmase zombien skadas
         /// 3. Om den skadade zombien förlorar alla sina HP dör den och spelaren får poäng
         /// </summary>
+
         private void picShotgun_Click(object sender, EventArgs e)
         {
-            shotgunSound.Play();
+            ShootWeapon(shotgun, shotgunSound);
+        }
 
-            bool didFire = shotgun.Fire();
-            if (didFire)
+        /// <summary>
+        /// 1. Avfyra revolvern om den inte överskrider "firing rate"
+        /// 2. Den närmase zombien skadas
+        /// 3. Om den skadade zombien förlorar alla sina HP dör den och spelaren får poäng
+        /// </summary>
+
+        private void picRevolver_Click(object sender, EventArgs e)
+        {
+            ShootWeapon(revolver, revolverSound);
+        }
+
+
+        private void ShootWeapon(Weapon weapon, System.Media.SoundPlayer sound)
+        {
+            bool didFire = weapon.Fire();
+            if (didFire && zombieList.Count != 0)
             {
-                // TODO skada första zombien
+                sound.Play();
+                if (weapon.Equals(shotgun) == false)
+                {
+                    zombieList[0].Shot(weapon);
+                }
+                else
+                {
+                    double dmgModifier = 1.15 + (zombieList[0].GetLocationPercent()/100.0);
+                    zombieList[0].Shot(weapon, dmgModifier);
+                }
+
+                if (zombieList[0].NoHitpoints())
+                {
+                    score++;
+                    labelScore.Text = "SCORE: " + score.ToString();
+                    RemoveControls(zombieList[0].GetControls());
+                    zombieDeathSound.Play();
+                    if (zombieList[0] != null)
+                    {
+                        zombieList.RemoveAt(0);
+                    }
+                    else
+                    {
+                        zombieList.Clear();
+                    }
+                }
             }
         }
 
         /// <summary>
-        /// 1. Avfyra revolvern om det inte överskrider "firing rate"
-        /// 2. Den närmase zombien skadas
-        /// 3. Om den skadade zombien förlorar alla sina HP dör den och spelaren får poäng
+        /// Flytta alla zombies. Kontrollera om någon kommit ända fram.
         /// </summary>
-        private void picRevolver_Click(object sender, EventArgs e)
-        {
-            zombieDeathSound.Play();
-
-            bool didFire = revolver.Fire();
-            if (didFire)
+        private void timerMove_Tick(object sender, EventArgs e)
+        { 
+            foreach (Zombie zombie in zombieList)
             {
-                // TODO skada första zombien
+                zombie.Move(timerMove.Interval);
             }
+
+            // flytta fram all UI så inte zombien överlappar den
+            labelScore.BringToFront();
+            buttonStart.BringToFront();
+            loseGameIfZombieIsBiting();
         }
 
         /// <summary>
@@ -68,19 +112,24 @@ namespace Zombieshooter
         /// </summary>
         private void loseGameIfZombieIsBiting()
         {
-            // TODO om zombie kommit hela vägen fram förlorar man spelet
-        }
-
-        /// <summary>
-        /// Flytta alla zombies. Kontrollera om någon kommit ända fram.
-        /// </summary>
-        private void timerMove_Tick(object sender, EventArgs e)
-        {
-            foreach (Zombie zombie in zombieList)
+            if (zombieList.Count > 0)
             {
-                zombie.Move(timerMove.Interval);
+                if (zombieList[0].IsBiting())
+                {
+                    timerMove.Stop();
+                    timerSpawn.Stop();
+                    deathSound.Play();
+                    labelDead.BringToFront();
+                    labelDead.Visible = true;
+                    if (score > highScore)
+                    {
+                        highScore = score;
+                    }
+                    labelHighScore.Text = "HIGHSCORE: " + highScore;
+                    labelHighScore.BringToFront();
+                    labelHighScore.Visible = true;
+                }
             }
-            loseGameIfZombieIsBiting();
         }
 
         /// <summary>
@@ -95,13 +144,26 @@ namespace Zombieshooter
         /// Skapa och lägg till en ny zombie.
         /// </summary>
         private void AddZombie()
-        {
-            // skapa ett nytt zombie-objekt
-            Zombie zombie = new Zombie(100, 15, 0);
-            // hämta och lägg till alla kontroller i zombien (picture, label m.m.)
-            AddControls(zombie.GetControls());
-            // lägg till zombien i zombielistan
-            zombieList.Add(zombie);
+        { 
+            Random rng = new Random();
+            int random = rng.Next(1, 5);
+
+            if (random == 1)
+            {
+                int hitPointsPowerful = rng.Next(800, 1501);
+  
+                Zombie zombiePowerful = new Zombie(hitPointsPowerful, 12, 0);
+                AddControls(zombiePowerful.GetControls());
+                zombieList.Add(zombiePowerful);
+            }
+            else if (random != 1)
+            {
+                int hitPoints = rng.Next(400, 801);
+             
+                Zombie zombie = new Zombie(hitPoints, 12, 0);
+                AddControls(zombie.GetControls());
+                zombieList.Add(zombie);
+            }
         }
 
         /// <summary>
@@ -132,9 +194,28 @@ namespace Zombieshooter
         /// </summary>
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            timerMove.Start();
-            timerSpawn.Start();
-            AddZombie();
+            if (zombieList.Count > 0)
+            {
+                foreach (Zombie zombie in zombieList)
+                {
+                    RemoveControls(zombie.GetControls());
+                }
+                zombieList.Clear();
+                labelDead.Visible = false;
+                labelHighScore.Visible = false;
+                score = 0;
+                labelScore.Text = "SCORE: " + score.ToString();
+
+                timerMove.Start();
+                timerSpawn.Start();
+                AddZombie();
+            }
+            else
+            {
+                timerMove.Start();
+                timerSpawn.Start();
+                AddZombie();
+            }
         }
     }
 }

@@ -61,13 +61,25 @@
         }
 
         /// <summary>
-        /// Skjut zombien med en vapen. Zombien skadas lika mycket som vapnets damage. Returnera
+        /// Skjut zombien med ett vapen. Zombien skadas lika mycket som vapnets damage. Returnera
         /// true om zombien dör.
         /// </summary>
         /// <param name="weapon">Vapen som skjuter på zombien</param>
-        public bool Shoot(Weapon weapon)
+        public bool Shot(Weapon weapon)
         {
-            // TODO
+            hitPoints -= weapon.GetDamage();
+
+            return NoHitpoints();
+        }
+
+        /// <summary>
+        /// Skjut zombien med shotgunnen, ju närmare zombien kommer desto mer damage tar den, dvs. om zombien 
+        /// har kommit halvvägs, distancePercent = 50, kommer dmgModifier = 1.50. 
+        /// </summary>
+        public bool Shot(Weapon weapon, double dmgModifier)
+        {
+            double dmg = weapon.GetDamage() * dmgModifier;
+            hitPoints -= Convert.ToInt32(dmg);
 
             return NoHitpoints();
         }
@@ -77,7 +89,10 @@
         /// </summary>
         public bool NoHitpoints()
         {
-            // TODO
+            if (hitPoints <= 0)
+            {
+                return true;
+            }
             return false;
         }
 
@@ -89,6 +104,11 @@
             return locationPercent >= 100;
         }
 
+        public int GetLocationPercent()
+        {
+            return locationPercent;
+        }
+
         /// <summary>
         /// Uppdatera läget av bild och text i en enlighet med var zombien är.
         /// </summary>
@@ -97,7 +117,9 @@
             pic.Left = MIN_LEFT + (100 - locationPercent) * (MAX_LEFT - MIN_LEFT) / 100;
             label.Left = pic.Left;
 
-            // TODO update label text
+            label.Text = "HP: " + hitPoints; 
+
+            
         }
 
         /// <summary>
@@ -127,7 +149,8 @@
             label.Left = 0; // set elsewhere
             label.Width = 130;
             label.Height = 35;
-            label.Text = "HP: 999"; // set elsewhere
+            label.AutoSize = true;
+            label.Text ="HP: "; // set elsewhere
             label.ForeColor = Color.White;
             label.BackColor = Color.Transparent;
             return label;

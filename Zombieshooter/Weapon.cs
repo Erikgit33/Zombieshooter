@@ -8,7 +8,7 @@
         // hur lång tid det måste gå mellan varje skott
         private TimeSpan fireRate;
 
-        // när som vapnet avfyrades senast
+        // när vapnet avfyrades senast
         private DateTime lastTimeFired = DateTime.Now;
 
         public Weapon(int damage, TimeSpan fireRate)
