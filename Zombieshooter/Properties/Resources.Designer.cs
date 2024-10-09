@@ -155,5 +155,15 @@ namespace Zombieshooter.Properties {
                 return ResourceManager.GetStream("zombie_death", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] zombieApocalypse_1 {
+            get {
+                object obj = ResourceManager.GetObject("zombieApocalypse-1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

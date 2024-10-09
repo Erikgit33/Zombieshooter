@@ -118,8 +118,6 @@
             label.Left = pic.Left;
 
             label.Text = "HP: " + hitPoints; 
-
-            
         }
 
         /// <summary>

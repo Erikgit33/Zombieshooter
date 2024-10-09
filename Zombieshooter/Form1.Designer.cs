@@ -39,6 +39,9 @@
             labelScore = new Label();
             labelDead = new Label();
             labelHighScore = new Label();
+            labelEyeX1 = new Label();
+            label3 = new Label();
+            labelEyeX2 = new Label();
             ((System.ComponentModel.ISupportInitialize)picShotgun).BeginInit();
             ((System.ComponentModel.ISupportInitialize)picRevolver).BeginInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox4).BeginInit();
@@ -161,6 +164,48 @@
             labelHighScore.Text = "HIGHSCORE:";
             labelHighScore.Visible = false;
             // 
+            // labelEyeX1
+            // 
+            labelEyeX1.AutoSize = true;
+            labelEyeX1.BackColor = Color.Transparent;
+            labelEyeX1.Font = new Font("Tahoma", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            labelEyeX1.ForeColor = Color.Black;
+            labelEyeX1.Location = new Point(106, 102);
+            labelEyeX1.Margin = new Padding(5, 0, 5, 0);
+            labelEyeX1.Name = "labelEyeX1";
+            labelEyeX1.Size = new Size(22, 22);
+            labelEyeX1.TabIndex = 9;
+            labelEyeX1.Text = "X";
+            labelEyeX1.Visible = false;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.BackColor = Color.Transparent;
+            label3.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point);
+            label3.ForeColor = Color.Black;
+            label3.Location = new Point(875, 195);
+            label3.Margin = new Padding(5, 0, 5, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(29, 29);
+            label3.TabIndex = 10;
+            label3.Text = "X";
+            label3.Visible = false;
+            // 
+            // labelEyeX2
+            // 
+            labelEyeX2.AutoSize = true;
+            labelEyeX2.BackColor = Color.Transparent;
+            labelEyeX2.Font = new Font("Tahoma", 12F, FontStyle.Bold, GraphicsUnit.Point);
+            labelEyeX2.ForeColor = Color.Black;
+            labelEyeX2.Location = new Point(81, 99);
+            labelEyeX2.Margin = new Padding(5, 0, 5, 0);
+            labelEyeX2.Name = "labelEyeX2";
+            labelEyeX2.Size = new Size(29, 29);
+            labelEyeX2.TabIndex = 11;
+            labelEyeX2.Text = "X";
+            labelEyeX2.Visible = false;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(14F, 26F);
@@ -169,6 +214,9 @@
             BackgroundImage = Properties.Resources.dualwield3;
             BackgroundImageLayout = ImageLayout.Zoom;
             ClientSize = new Size(1779, 419);
+            Controls.Add(labelEyeX2);
+            Controls.Add(label3);
+            Controls.Add(labelEyeX1);
             Controls.Add(labelHighScore);
             Controls.Add(labelDead);
             Controls.Add(labelScore);
@@ -183,6 +231,7 @@
             Margin = new Padding(6, 4, 6, 4);
             Name = "Form1";
             Text = "Form1";
+            FormClosed += Form1_FormClosed;
             ((System.ComponentModel.ISupportInitialize)picShotgun).EndInit();
             ((System.ComponentModel.ISupportInitialize)picRevolver).EndInit();
             ((System.ComponentModel.ISupportInitialize)pictureBox4).EndInit();
@@ -201,5 +250,8 @@
         private Label labelScore;
         private Label labelDead;
         private Label labelHighScore;
+        private Label labelEyeX1;
+        private Label label3;
+        private Label labelEyeX2;
     }
 }

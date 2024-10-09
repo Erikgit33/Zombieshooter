@@ -6,8 +6,8 @@ namespace Zombieshooter
         List<Zombie> zombieList = new List<Zombie>();
 
         // vapen med olika egenskaper
-        Weapon revolver = new Weapon(50, TimeSpan.FromMilliseconds(200));
-        Weapon shotgun = new Weapon(200, TimeSpan.FromMilliseconds(1500));
+        Weapon revolver = new Weapon(100, TimeSpan.FromMilliseconds(500));
+        Weapon shotgun = new Weapon(225, TimeSpan.FromMilliseconds(1500));
 
         // ljudeffekt för shotgun
         System.Media.SoundPlayer shotgunSound =
@@ -25,13 +25,43 @@ namespace Zombieshooter
         System.Media.SoundPlayer zombieDeathSound =
             new System.Media.SoundPlayer(Properties.Resources.zombie_death);
 
-        public Form1()
+        FormMenu formMenu;
+        bool hard;
+
+        public Form1(bool hard, FormMenu formMenu)
         {
             InitializeComponent();
+            this.hard = hard;
+            this.formMenu = formMenu;
+        }
+
+        // Transfer highscore of selected difficulty to formMenu 
+        // If score is higher than highscore on closure, without dying, it will still be saved and transferred
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            if (score > highScore)
+            {
+                highScore = score;
+            }
+
+            if (hard)
+            {
+                formMenu.hardHigh = highScore;
+                formMenu.UpdateHighscore();
+                formMenu.Show();
+            }
+            else
+            {
+                formMenu.normalHigh = highScore;
+                formMenu.UpdateHighscore();
+                formMenu.Show();
+            }
+            formMenu.Show();
         }
 
         int score;
-        int highScore;
+        int highScore; 
 
         /// <summary>
         /// 1. Avfyra shotgunen om den inte överskrider "firing rate"
@@ -68,7 +98,7 @@ namespace Zombieshooter
                 }
                 else
                 {
-                    double dmgModifier = 1.15 + (zombieList[0].GetLocationPercent()/100.0);
+                    double dmgModifier = 1.15 + (zombieList[0].GetLocationPercent() / 100.0);
                     zombieList[0].Shot(weapon, dmgModifier);
                 }
 
@@ -93,8 +123,9 @@ namespace Zombieshooter
         /// <summary>
         /// Flytta alla zombies. Kontrollera om någon kommit ända fram.
         /// </summary>
+
         private void timerMove_Tick(object sender, EventArgs e)
-        { 
+        {
             foreach (Zombie zombie in zombieList)
             {
                 zombie.Move(timerMove.Interval);
@@ -116,11 +147,19 @@ namespace Zombieshooter
             {
                 if (zombieList[0].IsBiting())
                 {
+                    foreach (Zombie zombie in zombieList)
+                    {
+                        RemoveControls(zombie.GetControls());
+                    }
+                    zombieList.Clear();
+
                     timerMove.Stop();
                     timerSpawn.Stop();
                     deathSound.Play();
                     labelDead.BringToFront();
                     labelDead.Visible = true;
+                    labelEyeX1.Visible = true;
+                    labelEyeX2.Visible = true;
                     if (score > highScore)
                     {
                         highScore = score;
@@ -132,37 +171,64 @@ namespace Zombieshooter
             }
         }
 
-        /// <summary>
-        /// Skapa (eng. spawn) en ny zombie och lägg till i listan.
-        /// </summary>
         private void timerSpawn_Tick(object sender, EventArgs e)
         {
             AddZombie();
         }
 
         /// <summary>
-        /// Skapa och lägg till en ny zombie.
+        /// Skapa och lägg till en ny zombie.               
         /// </summary>
-        private void AddZombie()
-        { 
-            Random rng = new Random();
-            int random = rng.Next(1, 5);
+        /// 
 
-            if (random == 1)
+        int spawnInterval;
+
+        private void AddZombie()
+        {
+            Random rng = new Random();
+            int randomSpawn = 0;
+            int speed = 12;
+
+            spawnInterval = timerSpawn.Interval;
+
+            if (hard)
+            {
+                speed = 20;
+            }
+            // Speed permanently increased from 12 to 20 if hardmode is enabled.
+
+            if (score <= 10 && hard == false)
+            {
+                randomSpawn = rng.Next(1, 5); // 25% chance for powerful zombie to spawn
+            }
+            else // Chance increases to 50% if score is over 10 but if hardmode is on, powerful spawn chance is always 50/50.
+            {
+                randomSpawn = rng.Next(1, 2);
+            }
+
+            if (randomSpawn == 1) // Powerful zombie
             {
                 int hitPointsPowerful = rng.Next(800, 1501);
-  
-                Zombie zombiePowerful = new Zombie(hitPointsPowerful, 12, 0);
+
+                Zombie zombiePowerful = new Zombie(hitPointsPowerful, speed, 0);
                 AddControls(zombiePowerful.GetControls());
                 zombieList.Add(zombiePowerful);
+
+                spawnInterval -= 25;
+
+                zombieDeathSound.Play(); // Death sound reused as spawn sound
             }
-            else if (random != 1)
+            else if (randomSpawn != 1) // Normal zombie
             {
                 int hitPoints = rng.Next(400, 801);
-             
-                Zombie zombie = new Zombie(hitPoints, 12, 0);
+
+                Zombie zombie = new Zombie(hitPoints, speed, 0);
                 AddControls(zombie.GetControls());
                 zombieList.Add(zombie);
+
+                spawnInterval -= 25;
+
+                zombieDeathSound.Play();
             }
         }
 
@@ -194,28 +260,28 @@ namespace Zombieshooter
         /// </summary>
         private void buttonStart_Click(object sender, EventArgs e)
         {
-            if (zombieList.Count > 0)
-            {
-                foreach (Zombie zombie in zombieList)
-                {
-                    RemoveControls(zombie.GetControls());
-                }
-                zombieList.Clear();
-                labelDead.Visible = false;
-                labelHighScore.Visible = false;
-                score = 0;
-                labelScore.Text = "SCORE: " + score.ToString();
+            // Save original spawn timer interval
+            int OriginalspawnInterval = timerSpawn.Interval;
 
-                timerMove.Start();
-                timerSpawn.Start();
-                AddZombie();
-            }
-            else
+            foreach (Zombie zombie in zombieList)
             {
-                timerMove.Start();
-                timerSpawn.Start();
-                AddZombie();
+                RemoveControls(zombie.GetControls());
             }
+            zombieList.Clear();
+
+            buttonStart.Text = "RESTART";
+            labelDead.Visible = false;
+            labelHighScore.Visible = false;
+            labelEyeX1.Visible = false;
+            labelEyeX2.Visible = false;
+            score = 0;
+            labelScore.Text = "SCORE: " + score.ToString();
+
+            timerSpawn.Interval = OriginalspawnInterval;
+
+            timerMove.Start();
+            timerSpawn.Start();
+            AddZombie();
         }
     }
 }
